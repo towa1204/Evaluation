@@ -17,9 +17,9 @@ public class OutputECC {
        ErrorCorrectionLevel.Q, ErrorCorrectionLevel.H};
 
     // 型番
-    int versionNumber = 18;
+    int versionNumber = 3;
     // 誤り訂正レベル
-    ErrorCorrectionLevel ecLevelVal = ecLevel[3];
+    ErrorCorrectionLevel ecLevelVal = ecLevel[0];
     // 埋め込む情報k'
     int kp  = 10;
 
@@ -33,23 +33,33 @@ public class OutputECC {
     NewVersion.NewECB[] ecb = newECBlocks.getECBlocks();
 
     // debug 用
-
+    System.out.println("従来の手法の誤り訂正能力");
     double normalECC = calcNormalECC(ecBlocks, numTotalCodewords);
     System.out.println("normalECC = " + normalECC);
+    System.out.println();
 
-    double exsistECCsub = calcExsistMultipleECC(maxNumDataBytes, kp, ecBlocks);
-    double exsistECC = exsistECCsub != -1 ? exsistECCsub : normalECC;
-    System.out.println("exsistECC = " + exsistECC);
+    if (isSingleRSBlock(ecBlocks)) {
+      System.out.println("既存手法(単一RSブロック)の誤り訂正能力");
+      double exsistSingleECC = calcExsistSingleECC(kp, numTotalCodewords);
+      System.out.println("exsistSingleECC = " + exsistSingleECC);
+      System.out.println();
+    }
 
+    System.out.println("既存手法(複数RSブロック)の誤り訂正能力");
+    double exsistMultiECCsub = calcExsistMultipleECC(maxNumDataBytes, kp, ecBlocks);
+    double exsistMultiECC = exsistMultiECCsub != -1 ? exsistMultiECCsub : normalECC;
+    System.out.println("exsistMultiECC = " + exsistMultiECC);
+    System.out.println();
+
+    System.out.println("提案手法の誤り訂正能力");
     double proposedECC = calcProposedECC(ecb, numTotalCodewords);
     System.out.println("proposedECC = " + proposedECC);
+    System.out.println();
 
   }
 
   // 提案手法の誤り訂正能力を返すメソッド
   public static double calcProposedECC(NewVersion.NewECB[] ecb, int numTotalCodewords) {
-    System.out.println("提案手法の誤り訂正能力");
-
     double ecc = 0;
     for (NewVersion.NewECB block : ecb) {
       // デバッグ用
@@ -64,11 +74,35 @@ public class OutputECC {
     return ecc;
   }
 
-  //もうひとつの既存手法のも作る
+  // 既存手法(単一RSブロック)の誤り訂正能力を返すメソッド
+  // 既存手法を利用できないとき -1 を出力し通常のQRコードの求め方を利用する
+  // この手法はその型番・誤り訂正レベルで適用可能なとき使用する
+  public static double calcExsistSingleECC(int kp, int numTotalCodewords) {
+    double ecc = 0;
+    // デバッグ用
+    System.out.println("(" + numTotalCodewords + "," + kp + ")");
+    // 誤り訂正可能な数
+    int t = (numTotalCodewords - kp) / 2;
+    ecc = t / (double) numTotalCodewords;
+    return ecc;
+  }
+
+  // ある型番・誤り訂正レベルのとき単一RS符号か否か
+  public static boolean isSingleRSBlock(Version.ECBlocks ecBlocks) {
+    int numBlocks = ecBlocks.getNumBlocks();
+    int firstNumBlocks = ecBlocks.getECBlocks()[0].getCount();
+
+    boolean flag = false;
+    if(numBlocks == 1 && firstNumBlocks == 1) {
+      flag = true;
+    }
+
+    return flag;
+  }
 
   // 既存手法(複数RSブロック)の誤り訂正能力を返すメソッド
+  // 既存手法を利用できないとき -1 を出力し通常のQRコードの求め方を利用する
   public static double calcExsistMultipleECC(int numDataBytes, int kp, Version.ECBlocks ecBlocks) {
-    System.out.println("既存手法(複数RSブロック)の誤り訂正能力");
     int p = calcRP(numDataBytes, kp, ecBlocks)[1];
 
     double ecc = 0;
@@ -107,7 +141,6 @@ public class OutputECC {
 
   // 従来手法の誤り訂正能力を求めるメソッド
   public static double calcNormalECC(Version.ECBlocks ecBlocks, int numTotalCodewords) {
-    System.out.println("従来の手法の誤り訂正能力");
     double ecc = 0;
     // 誤り訂正可能な数
     int t = ecBlocks.getECCodewordsPerBlock() / 2;
