@@ -21,11 +21,11 @@ public class OutputECC {
        ErrorCorrectionLevel.Q, ErrorCorrectionLevel.H};
 
     // 型番
-    int versionNumber = 6;
+    int versionNumber = 5;
     // 誤り訂正レベル
     ErrorCorrectionLevel ecLevelVal = ecLevel[3];
 
-    String fileName = "C:\\Research2020\\evaluation\\evaluation_2_6H.csv";
+    String fileName = "C:\\Research2020\\evaluation\\evaluation2\\evaluation_2_5H.csv";
 
     Version version = Version.getVersionForNumber(versionNumber);
     Version.ECBlocks ecBlocks = version.getECBlocksForLevel(ecLevelVal);
@@ -37,13 +37,15 @@ public class OutputECC {
     double[][] eccArray = new double[flag ? 4 : 3][maxNumDataBytes];
 
     // 小数点第2位以下は切り捨て
-    for (int i = 1; i <= maxNumDataBytes; i++) {
+    int initialK = versionNumber <= 9 ? 4 + 1 : 5 + 1;
+
+    for (int i = initialK; i <= maxNumDataBytes; i++) {
       NewVersion newVersion = new NewVersion(versionNumber, ecLevelVal, i);
       NewVersion.NewECBlocks newECBlocks = newVersion.getECBlocks();
       NewVersion.NewECB[] ecb = newECBlocks.getECBlocks();
 
       // debug 用
-//      System.out.println("k' = " + i);
+      //System.out.println("k' = " + i);
 //      System.out.println("提案手法の誤り訂正能力");
 //      double proposedECC = calcProposedECC(ecb, numTotalCodewords);
 //      System.out.println("proposedECC = " + Math.floor(proposedECC * 10) / 10);
@@ -68,7 +70,7 @@ public class OutputECC {
 //      System.out.println();
 
 
-      double proposedECC = calcProposedECC(ecb, numTotalCodewords);
+      double proposedECC = calcProposedECC(ecb);
       eccArray[0][i-1] = Math.floor(proposedECC * 10) / 10;
       double normalECC = calcNormalECC(ecBlocks, numTotalCodewords);
       eccArray[1][i-1] = Math.floor(normalECC * 10) / 10;
@@ -133,16 +135,21 @@ public class OutputECC {
   }
 
   // 提案手法の誤り訂正能力を返すメソッド
-  public static double calcProposedECC(NewVersion.NewECB[] ecb, int numTotalCodewords) {
+  public static double calcProposedECC(NewVersion.NewECB[] ecb) {
     double ecc = 0;
+    int numTotalCodewords = 0;
     for (NewVersion.NewECB block : ecb) {
       // デバッグ用
-      // System.out.println(block.getCount() + "×(" + block.getCodewords() + "," + block.getDataCodewords() + ")" );
-      // 誤り訂正可能な数
+      //System.out.println(block.getCount() + "×(" + block.getCodewords() + "," + block.getDataCodewords() + ")" );
+       // 誤り訂正可能な数
       int t = (block.getCodewords() - block.getDataCodewords()) / 2;
       // 誤り訂正可能な数の総和
       ecc += block.getCount() * t ;
+      // 符号長の総和
+      numTotalCodewords += block.getCodewords() * block.getCount();
     }
+    //System.out.println("numTotalCodewords = " + numTotalCodewords);
+    //System.out.println();
     // 誤り訂正可能な数の総和 / 符号長の総和
     ecc = ecc / (double) numTotalCodewords * 100;
     return ecc;
@@ -178,7 +185,7 @@ public class OutputECC {
   // 既存手法を利用できないとき -1 を出力し通常のQRコードの求め方を利用する
   public static double calcExsistMultipleECC(int numDataBytes, int kp, Version.ECBlocks ecBlocks) {
     int p = calcRP(numDataBytes, kp, ecBlocks)[1];
-
+//    System.out.println("p = " + p);
     double ecc = 0;
 
     if (p == 0) {
@@ -200,11 +207,13 @@ public class OutputECC {
           // 誤り訂正可能な数の総和
           ecc += nkParam.get(0).get(i) * t;
         }
+        // System.out.println();
         // 誤り訂正可能な数の総和 / 符号長の総和
-        ecc /= (double) (kp + p);
+        ecc = ecc / (double) (kp + p) * 100;
+        //System.out.println(ecc);
       } else {
         // デバッグ用
-        // System.out.println("(" + (kp + p) + "," + p + ")");
+        //System.out.println("(" + (kp + p) + "," + kp + ")");
         // そのまま求める
         ecc = (p / 2) / (double) (kp + p) * 100;
       }
