@@ -20,23 +20,33 @@ public class QRCodeGenerateMultiple {
   public static void main(String[] args) {
     // 複数QRコードを生成するプログラム
 
-    // QRコードの画像の幅，高さ
-    int width = 200;
-    int height = 200;
-    String[] content = {"prichan", "good morning", "research is too hard."};
-    int[] version = {4, 5, 6};
-    ErrorCorrectionLevel[] ecLevel = {ErrorCorrectionLevel.L, ErrorCorrectionLevel.M,
-                                      ErrorCorrectionLevel.Q};
-    String output = "C:\\Research2020\\image\\test\\test";
+    // 入力：バージョン・誤り訂正レベルの指定
+    int selectNumber = 0;
+    String content = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl";
+    int[] version = {8, 8, 15, 15};
+    // QRコードの画像の幅，高さ，ピクセル数
+    int width = 125 + 10 * version[selectNumber];
+    int height = width;
+    ErrorCorrectionLevel[] ecLevel = {ErrorCorrectionLevel.L, ErrorCorrectionLevel.H,
+                                      ErrorCorrectionLevel.L, ErrorCorrectionLevel.H};
+
+    /* 手法によってjarファイルを変更する必要がある */
+
+    // 入力：QRコードの画像数
+    int qrcodeImageNum = 1000;
+    // 入力：格納するディレクトリ名とそのファイル名の頭
+    String directoryName = "evaluation1\\exsist\\8L\\8L";
+
+    String output = "C:\\Research2020\\image\\" + directoryName;
     String outputPath = "";
 
-    for (int i = 0; i < content.length; i++) {
-      Hashtable hints = new Hashtable();
-      //QRコードのバージョンを決定
-      hints.put(EncodeHintType.QR_VERSION, version[i]);
-      //QRコードの誤り訂正レベルを決定
-      hints.put(EncodeHintType.ERROR_CORRECTION, ecLevel[i]);
+    Hashtable hints = new Hashtable();
+    //QRコードのバージョンを決定
+    hints.put(EncodeHintType.QR_VERSION, version[selectNumber]);
+    //QRコードの誤り訂正レベルを決定
+    hints.put(EncodeHintType.ERROR_CORRECTION, ecLevel[selectNumber]);
 
+    for (int i = 0; i < qrcodeImageNum; i++) {
       try {
         QRCodeWriter qrWriter = new QRCodeWriter();
 
@@ -45,7 +55,7 @@ public class QRCodeGenerateMultiple {
         // (2)出力するバーコードの書式
         // (3)イメージの幅
         // (4)イメージの高さ
-        BitMatrix bitMatrix = qrWriter.encode(content[i], BarcodeFormat.QR_CODE, width, height, hints);
+        BitMatrix bitMatrix = qrWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
 
         BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
 
@@ -55,7 +65,7 @@ public class QRCodeGenerateMultiple {
         System.out.println("出力に成功しました。");
 
       } catch (WriterException e) {
-          System.err.println("[" + content[i] + "] をエンコードするときに例外が発生.");
+          System.err.println("[" + content + "] をエンコードするときに例外が発生.");
           e.printStackTrace();
       } catch (IOException e) {
           System.err.println("[" + outputPath + "] を出力するときに例外が発生.");

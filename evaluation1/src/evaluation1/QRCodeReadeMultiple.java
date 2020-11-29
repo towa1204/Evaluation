@@ -24,10 +24,10 @@ public class QRCodeReadeMultiple {
     /* 手法によってjarファイルを変更する必要がある */
 
     // 入力：QRコードの画像数
-    int qrcodeImageNum = 3;
+    int qrcodeImageNum = 1000;
 
     // 入力：格納するディレクトリ名とそのファイル名の頭
-    String directoryName = "test\\test";
+    String directoryName = "evaluation1\\exsist\\8L\\8L";
 
     String input = "C:\\Research2020\\image\\" + directoryName + "-";
     String inputPath = "";
@@ -50,10 +50,31 @@ public class QRCodeReadeMultiple {
 
         System.out.println("result = " + result.getText());
 
-      } catch (NotFoundException | ChecksumException | FormatException | IOException e) {
-        System.err.println("復号失敗");
+      }  catch (NotFoundException e) {
+        System.err.println("[" + inputPath + "] イメージの中にバーコードが見つからないためデコードで例外が発生.");
+        e.printStackTrace();
+        failed++;
+      } catch (ChecksumException e) {
+        System.err.println("[" + inputPath + "] バーコードが見つかったがチェックサム検査で例外が発生.");
+        e.printStackTrace();
+        failed++;
+      } catch (FormatException e) {
+        System.err.println("[" + inputPath + "] は書式不正のためデコードで例外が発生.");
+        e.printStackTrace();
+        failed++;
+      } catch (IOException e) {
+        System.err.println("[" + inputPath + "] を読み込むときに例外が発生.");
+        e.printStackTrace();
         failed++;
       }
+
+//      catch(FormatException e) {
+//        System.err.println("読み取り失敗");
+//        failed++;
+//      } catch (NotFoundException | ChecksumException | IOException e) {
+//        System.err.println("復号失敗");
+//        failed++;
+//      }
     }
     System.out.println("成功確率 = " + (qrcodeImageNum - failed) + "/" + qrcodeImageNum);
   }
