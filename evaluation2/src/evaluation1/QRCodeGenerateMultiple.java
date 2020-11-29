@@ -1,4 +1,4 @@
-package evaluation2;
+package evaluation1;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
