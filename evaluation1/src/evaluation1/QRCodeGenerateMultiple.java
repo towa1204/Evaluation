@@ -33,9 +33,9 @@ public class QRCodeGenerateMultiple {
     /* 手法によってjarファイルを変更する必要がある */
 
     // 入力：QRコードの画像数
-    int qrcodeImageNum = 1000;
+    int qrcodeImageNum = 1;
     // 入力：格納するディレクトリ名とそのファイル名の頭
-    String directoryName = "evaluation1\\exsist\\8L\\8L";
+    String directoryName = "evaluation1\\proposed\\8L\\noError";
 
     String output = "C:\\Research2020\\image\\" + directoryName;
     String outputPath = "";
@@ -45,6 +45,8 @@ public class QRCodeGenerateMultiple {
     hints.put(EncodeHintType.QR_VERSION, version[selectNumber]);
     //QRコードの誤り訂正レベルを決定
     hints.put(EncodeHintType.ERROR_CORRECTION, ecLevel[selectNumber]);
+
+    hints.put(EncodeHintType.ERROR_PROB, -1);
 
     for (int i = 0; i < qrcodeImageNum; i++) {
       try {
